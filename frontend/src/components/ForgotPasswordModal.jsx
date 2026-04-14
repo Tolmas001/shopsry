@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Mail, KeyRound, Lock, ArrowRight, CheckCircle2 } from 'lucide-react';
+import { X, Mail, KeyRound, Lock, ArrowRight, CheckCircle2, Eye, EyeOff } from 'lucide-react';
 import { useApp } from '../context/AppContext';
 
 const ForgotPasswordModal = ({ isOpen, onClose }) => {
@@ -9,6 +9,7 @@ const ForgotPasswordModal = ({ isOpen, onClose }) => {
   const [email, setEmail] = useState('');
   const [code, setCode] = useState('');
   const [newPassword, setNewPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
@@ -169,12 +170,25 @@ const ForgotPasswordModal = ({ isOpen, onClose }) => {
             >
               <div className="form-group">
                 <label>{t('new_password_label')}</label>
-                <input 
-                  type="password" 
-                  value={newPassword} 
-                  onChange={e => setNewPassword(e.target.value)} 
-                  required 
-                />
+                <div style={{ position: 'relative' }}>
+                  <input 
+                    type={showPassword ? 'text' : 'password'} 
+                    value={newPassword} 
+                    onChange={e => setNewPassword(e.target.value)} 
+                    required 
+                    style={{ width: '100%', paddingRight: '45px' }}
+                  />
+                  <button 
+                    type="button" 
+                    onClick={() => setShowPassword(!showPassword)}
+                    style={{ 
+                      position: 'absolute', right: '12px', top: '50%', transform: 'translateY(-50%)',
+                      padding: '4px', color: 'var(--text-muted)', cursor: 'pointer', display: 'flex'
+                    }}
+                  >
+                    {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+                  </button>
+                </div>
               </div>
               <button type="submit" className="btn btn-primary" style={{ width: '100%' }} disabled={loading}>
                 {loading ? t('loading') : t('reset_password_btn')}

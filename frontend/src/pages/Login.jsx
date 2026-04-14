@@ -3,11 +3,13 @@ import { useNavigate, useSearchParams } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { useApp } from '../context/AppContext';
 import ForgotPasswordModal from '../components/ForgotPasswordModal';
+import { Eye, EyeOff } from 'lucide-react';
 
 const Login = () => {
   const { t, login, register } = useApp();
   const [isRegister, setIsRegister] = useState(false);
   const [showForgotModal, setShowForgotModal] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
   const [form, setForm] = useState({ username: '', email: '', password: '' });
   const [error, setError] = useState('');
   const [searchParams] = useSearchParams();
@@ -96,12 +98,25 @@ const Login = () => {
           
           <div className="form-group">
             <label>{t('password_label')}</label>
-            <input 
-              type="password" 
-              value={form.password} 
-              onChange={e => setForm({...form, password: e.target.value})} 
-              required 
-            />
+            <div style={{ position: 'relative' }}>
+              <input 
+                type={showPassword ? 'text' : 'password'} 
+                value={form.password} 
+                onChange={e => setForm({...form, password: e.target.value})} 
+                required 
+                style={{ width: '100%', paddingRight: '45px' }}
+              />
+              <button 
+                type="button" 
+                onClick={() => setShowPassword(!showPassword)}
+                style={{ 
+                  position: 'absolute', right: '12px', top: '50%', transform: 'translateY(-50%)',
+                  padding: '4px', color: 'var(--text-muted)', cursor: 'pointer', display: 'flex'
+                }}
+              >
+                {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+              </button>
+            </div>
           </div>
           
           {!isRegister && (

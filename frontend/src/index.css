@@ -8,9 +8,11 @@
   --secondary-hover: #D97706;
   --background: #F9FAFB;
   --surface: #FFFFFF;
+  --bg-card: #FFFFFF;
   --text-main: #111827;
   --text-muted: #6B7280;
   --border: #E5E7EB;
+  --border-color: #E5E7EB;
   --error: #EF4444;
   --success: #10B981;
 
@@ -32,11 +34,13 @@
 }
 
 [data-theme='dark'] {
-  --background: #111827;
-  --surface: #1F2937;
-  --text-main: #F9FAFB;
-  --text-muted: #9CA3AF;
-  --border: #374151;
+  --background: #0F172A;
+  --surface: #1E293B;
+  --bg-card: #1E293B;
+  --text-main: #F8FAFC;
+  --text-muted: #94A3B8;
+  --border: #334155;
+  --border-color: #334155;
 }
 
 * {

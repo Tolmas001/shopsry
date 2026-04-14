@@ -46,7 +46,14 @@ const translations = {
     forgot_password_desc: 'Emailingizni kiriting va biz sizga tasdiqlash kodini yuboramiz',
     enter_code: 'Tasdiqlash kodini kiriting', new_password_label: 'Yangi parol', 
     send_code_btn: 'Kodni yuborish', reset_password_btn: 'Parolni yangilash',
-    success_forgot_password: 'Tasdiqlash kodi emailingizga yuborildi', success_reset_password: 'Parol muvaffaqiyatli o\'zgartirildi'
+    success_forgot_password: 'Tasdiqlash kodi emailingizga yuborildi', success_reset_password: 'Parol muvaffaqiyatli o\'zgartirildi',
+    my_orders: 'Buyurtmalarim', no_orders: 'Sizda hali buyurtmalar mavjud emas', order_id: 'Buyurtma ID',
+    order_date: 'Sana', order_status: 'Holati', total_price: 'Jami summa',
+    theme_settings: 'Mavzu sozlamalari', dark_mode: 'Tungi rejim', light_mode: 'Yorug\' rejim',
+    account_security: 'Hisob xavfsizligi', logout_confirm: 'Haqiqatan ham chiqmoqchimisiz?',
+    status_pending: 'Kutilmoqda', status_completed: 'Tugallangan', status_cancelled: 'Bekor qilingan',
+    payment_method: 'To\'lov usuli', payment_status: 'To\'lov holati', paid: 'To\'langan', unpaid: 'To\'lanmagan',
+    cash: 'Naqd', card: 'Karta'
   },
   ru: {
     nav_home: 'Главная', nav_shop: 'Магазин', nav_categories: 'Категории', nav_about: 'О нас', nav_contact: 'Контакты',
@@ -90,7 +97,14 @@ const translations = {
     forgot_password_desc: 'Введите ваш email, и мы отправим вам код подтверждения',
     enter_code: 'Введите код подтверждения', new_password_label: 'Новый пароль',
     send_code_btn: 'Отправить код', reset_password_btn: 'Обновить пароль',
-    success_forgot_password: 'Код подтверждения отправлен на вашу почту', success_reset_password: 'Пароль успешно изменен'
+    success_forgot_password: 'Код подтверждения отправлен на вашу почту', success_reset_password: 'Пароль успешно изменен',
+    my_orders: 'Мои заказы', no_orders: 'У вас пока нет заказов', order_id: 'ID заказа',
+    order_date: 'Дата', order_status: 'Статус', total_price: 'Итоговая сумма',
+    theme_settings: 'Настройки темы', dark_mode: 'Темный режим', light_mode: 'Светлый режим',
+    account_security: 'Безопасность аккаунта', logout_confirm: 'Вы действительно хотите выйти?',
+    status_pending: 'В ожидании', status_completed: 'Завершен', status_cancelled: 'Отменен',
+    payment_method: 'Способ оплаты', payment_status: 'Статус оплаты', paid: 'Оплачено', unpaid: 'Не оплачено',
+    cash: 'Наличные', card: 'Карта'
   },
   en: {
     nav_home: 'Home', nav_shop: 'Shop', nav_categories: 'Categories', nav_about: 'About Us', nav_contact: 'Contact',
@@ -134,9 +148,16 @@ const translations = {
     forgot_password_desc: 'Enter your email and we will send you a verification code',
     enter_code: 'Enter verification code', new_password_label: 'New Password',
     send_code_btn: 'Send Code', reset_password_btn: 'Update Password',
-    success_forgot_password: 'Verification code has been sent to your email', success_reset_password: 'Password changed successfully'
+    success_forgot_password: 'Verification code has been sent to your email', success_reset_password: 'Password changed successfully',
+    my_orders: 'My Orders', no_orders: 'You have no orders yet', order_id: 'Order ID',
+    order_date: 'Date', order_status: 'Status', total_price: 'Total Price',
+    theme_settings: 'Theme Settings', dark_mode: 'Dark Mode', light_mode: 'Light Mode',
+    account_security: 'Account Security', logout_confirm: 'Are you sure you want to logout?',
+    status_pending: 'Pending', status_completed: 'Completed', status_cancelled: 'Cancelled',
+    payment_method: 'Payment Method', payment_status: 'Payment Status', paid: 'Paid', unpaid: 'Unpaid',
+    cash: 'Cash', card: 'Card'
   }
-};
+}
 
 export const useApp = () => useContext(AppContext);
 

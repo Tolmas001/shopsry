@@ -468,11 +468,13 @@ app.get('/auth/google/callback', async (req, res) => {
     const token = jwt.sign({ id: user.id, username: user.username, role: user.role }, SECRET_KEY, { expiresIn: '24h' });
     
     // Redirect back to frontend with token
-    res.redirect(`http://localhost:3001/login-success?token=${token}`);
+    const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:3000';
+    res.redirect(`${frontendUrl}/login-success?token=${token}`);
     
   } catch (err) {
     console.error('Google callback error:', err);
-    res.redirect('http://localhost:3001/login?error=google_auth_failed');
+    const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:3000';
+    res.redirect(`${frontendUrl}/login?error=google_auth_failed`);
   }
 });
 
