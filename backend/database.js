@@ -72,11 +72,12 @@ const initializeDB = async () => {
     try {
       await client.query('ALTER TABLE orders ADD COLUMN IF NOT EXISTS payment_method VARCHAR(50) DEFAULT \'cash\'');
       await client.query('ALTER TABLE orders ADD COLUMN IF NOT EXISTS payment_status VARCHAR(50) DEFAULT \'unpaid\'');
-      await client.query('ALTER TABLE users ADD COLUMN IF NOT EXISTS google_id VARCHAR(255) UNIQUE');
-      await client.query('ALTER TABLE users ADD COLUMN IF NOT EXISTS image TEXT');
-      await client.query('ALTER TABLE users ADD COLUMN IF NOT EXISTS full_name VARCHAR(255)');
-      await client.query('ALTER TABLE users ADD COLUMN IF NOT EXISTS reset_code VARCHAR(6)');
-      await client.query('ALTER TABLE users ADD COLUMN IF NOT EXISTS reset_expiry TIMESTAMP');
+      await client.query('ALTER TABLE users ADD COLUMN IF NOT EXISTS phone VARCHAR(50)');
+      await client.query('ALTER TABLE users ADD COLUMN IF NOT EXISTS points INTEGER DEFAULT 0');
+      await client.query('ALTER TABLE users ADD COLUMN IF NOT EXISTS notifications_enabled BOOLEAN DEFAULT true');
+      await client.query('ALTER TABLE users ADD COLUMN IF NOT EXISTS privacy_private BOOLEAN DEFAULT false');
+      await client.query('ALTER TABLE users ADD COLUMN IF NOT EXISTS address_list JSONB DEFAULT \'[]\'::jsonb');
+      await client.query('ALTER TABLE users ADD COLUMN IF NOT EXISTS saved_cards JSONB DEFAULT \'[]\'::jsonb');
       await client.query('ALTER TABLE users ALTER COLUMN password DROP NOT NULL');
     } catch (e) {
       // Ignored if changes already applied

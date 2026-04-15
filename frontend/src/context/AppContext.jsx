@@ -53,7 +53,17 @@ const translations = {
     account_security: 'Hisob xavfsizligi', logout_confirm: 'Haqiqatan ham chiqmoqchimisiz?',
     status_pending: 'Kutilmoqda', status_completed: 'Tugallangan', status_cancelled: 'Bekor qilingan',
     payment_method: 'To\'lov usuli', payment_status: 'To\'lov holati', paid: 'To\'langan', unpaid: 'To\'lanmagan',
-    cash: 'Naqd', card: 'Karta'
+    cash: 'Naqd', card: 'Karta',
+    saved_addresses: 'Mening manzillarim', add_address: 'Yangi manzil',
+    payment_methods: 'To\'lov kartalari', add_card: 'Yangi karta',
+    my_reviews: 'Sharhlarim', loyalty_points: 'Mening ballarim',
+    member_tier: 'Daraja', profile_completeness: 'Profil to\'liqligi',
+    phone_number: 'Telefon raqami', notifications: 'Bildirishnomalar',
+    email_notifications: 'Email bildirishnomalar', private_profile: 'Maxfiy profil',
+    deactivate_account: 'Hisobni o\'chirish', address_title: 'Manzil nomi',
+    address_details: 'Manzil tafsilotlari', card_number: 'Karta raqami',
+    card_expiry: 'Yaroqlilik muddati', card_holder: 'Karta egasi',
+    bronze_member: 'Bronza a\'zo', silver_member: 'Kumush a\'zo', gold_member: 'Oltin a\'zo',
   },
   ru: {
     nav_home: 'Главная', nav_shop: 'Магазин', nav_categories: 'Категории', nav_about: 'О нас', nav_contact: 'Контакты',
@@ -104,7 +114,17 @@ const translations = {
     account_security: 'Безопасность аккаунта', logout_confirm: 'Вы действительно хотите выйти?',
     status_pending: 'В ожидании', status_completed: 'Завершен', status_cancelled: 'Отменен',
     payment_method: 'Способ оплаты', payment_status: 'Статус оплаты', paid: 'Оплачено', unpaid: 'Не оплачено',
-    cash: 'Наличные', card: 'Карта'
+    cash: 'Наличные', card: 'Карта',
+    saved_addresses: 'Мои адреса', add_address: 'Новый адрес',
+    payment_methods: 'Платежные карты', add_card: 'Новая карта',
+    my_reviews: 'Мои отзывы', loyalty_points: 'Мои баллы',
+    member_tier: 'Уровень', profile_completeness: 'Полнота профиля',
+    phone_number: 'Номер телефона', notifications: 'Уведомления',
+    email_notifications: 'Email уведомления', private_profile: 'Приватный профиль',
+    deactivate_account: 'Удалить аккаунт', address_title: 'Название адреса',
+    address_details: 'Детали адреса', card_number: 'Номер карты',
+    card_expiry: 'Срок действия', card_holder: 'Владелец карты',
+    bronze_member: 'Бронзовый участник', silver_member: 'Серебряный участник', gold_member: 'Золотой участник',
   },
   en: {
     nav_home: 'Home', nav_shop: 'Shop', nav_categories: 'Categories', nav_about: 'About Us', nav_contact: 'Contact',
@@ -155,7 +175,17 @@ const translations = {
     account_security: 'Account Security', logout_confirm: 'Are you sure you want to logout?',
     status_pending: 'Pending', status_completed: 'Completed', status_cancelled: 'Cancelled',
     payment_method: 'Payment Method', payment_status: 'Payment Status', paid: 'Paid', unpaid: 'Unpaid',
-    cash: 'Cash', card: 'Card'
+    cash: 'Cash', card: 'Card',
+    saved_addresses: 'My Addresses', add_address: 'Add Address',
+    payment_methods: 'Payment Cards', add_card: 'Add Card',
+    my_reviews: 'My Reviews', loyalty_points: 'My Points',
+    member_tier: 'Member Tier', profile_completeness: 'Profile Completeness',
+    phone_number: 'Phone Number', notifications: 'Notifications',
+    email_notifications: 'Email Notifications', private_profile: 'Private Profile',
+    deactivate_account: 'Deactivate Account', address_title: 'Address Title',
+    address_details: 'Address Details', card_number: 'Card Number',
+    card_expiry: 'Expiry Date', card_holder: 'Card Holder',
+    bronze_member: 'Bronze Member', silver_member: 'Silver Member', gold_member: 'Gold Member',
   }
 }
 

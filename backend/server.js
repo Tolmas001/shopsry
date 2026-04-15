@@ -319,6 +319,14 @@ app.post('/api/orders', authenticateToken, async (req, res) => {
     );
     const orderId = rows[0].id;
     
+    // Add Loyalty Points if user is logged in
+    if (user_id) {
+      const pointsEarned = Math.floor(total / 10000); // 1 point per 10,000 UZS
+      if (pointsEarned > 0) {
+        await client.query('UPDATE users SET points = COALESCE(points, 0) + $1 WHERE id = $2', [pointsEarned, user_id]);
+      }
+    }
+    
     for (const item of items) {
       await client.query(
         'INSERT INTO order_items (order_id, product_id, quantity, price) VALUES ($1, $2, $3, $4)',
@@ -418,7 +426,7 @@ app.post('/api/auth/reset-password', async (req, res) => {
 const client = new OAuth2Client(
   process.env.GOOGLE_CLIENT_ID,
   process.env.GOOGLE_CLIENT_SECRET,
-  'http://localhost:5001/auth/google/callback'
+  process.env.GOOGLE_REDIRECT_URL || 'http://localhost:5001/auth/google/callback'
 );
 
 app.get('/auth/google', (req, res) => {
@@ -480,7 +488,7 @@ app.get('/auth/google/callback', async (req, res) => {
 
 app.get('/api/auth/me', authenticateToken, async (req, res) => {
   try {
-    const { rows } = await pool.query('SELECT id, username, email, full_name, role, image FROM users WHERE id = $1', [req.user.id]);
+    const { rows } = await pool.query('SELECT id, username, email, full_name, role, image, phone, points, notifications_enabled, privacy_private, address_list, saved_cards FROM users WHERE id = $1', [req.user.id]);
     res.json(rows[0]);
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -488,28 +496,64 @@ app.get('/api/auth/me', authenticateToken, async (req, res) => {
 });
 
 app.put('/api/auth/profile', authenticateToken, async (req, res) => {
-  const { username, email, password, image } = req.body;
+  const { username, email, password, image, full_name, phone, notifications_enabled, privacy_private, address_list, saved_cards } = req.body;
   const userId = req.user.id;
   
   try {
     const savedImagePath = saveBase64Image(image);
-    let query = 'UPDATE users SET username = $1, email = $2, image = $3, full_name = $4';
-    const params = [username, email, savedImagePath, req.body.full_name];
+    let query = 'UPDATE users SET username = $1, email = $2, image = $3, full_name = $4, phone = $5, notifications_enabled = $6, privacy_private = $7, address_list = $8, saved_cards = $9';
+    const params = [
+      username, 
+      email, 
+      savedImagePath, 
+      full_name, 
+      phone, 
+      notifications_enabled, 
+      privacy_private, 
+      JSON.stringify(address_list || []), 
+      JSON.stringify(saved_cards || [])
+    ];
     
     if (password) {
       const hashedPassword = await bcrypt.hash(password, 10);
-      query += ', password = $5 WHERE id = $6';
+      query += ', password = $10 WHERE id = $11';
       params.push(hashedPassword, userId);
     } else {
-      query += ' WHERE id = $5';
+      query += ' WHERE id = $10';
       params.push(userId);
     }
     
     await pool.query(query, params);
-    res.json({ success: true, user: { id: userId, username, email, full_name: req.body.full_name, role: req.user.role, image: savedImagePath } });
+    
+    // Fetch updated user
+    const { rows } = await pool.query('SELECT id, username, email, full_name, role, image, phone, points, notifications_enabled, privacy_private, address_list, saved_cards FROM users WHERE id = $1', [userId]);
+    res.json({ success: true, user: rows[0] });
   } catch (err) {
     console.error('Profile update error:', err);
     res.status(400).json({ error: 'Username or email already exists' });
+  }
+});
+
+// User reviews
+app.get('/api/auth/my-reviews', authenticateToken, async (req, res) => {
+  try {
+    const { rows } = await pool.query('SELECT id, name, image, comments FROM products WHERE comments @> $1', [JSON.stringify([{ username: req.user.username }])]);
+    const reviews = [];
+    rows.forEach(p => {
+      p.comments.forEach(c => {
+        if (c.username === req.user.username) {
+          reviews.push({
+            productId: p.id,
+            productName: p.name,
+            productImage: p.image,
+            ...c
+          });
+        }
+      });
+    });
+    res.json(reviews);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
   }
 });
 

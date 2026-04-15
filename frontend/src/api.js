@@ -39,6 +39,7 @@ export const auth = {
   googleLogin: (credential) => api.post('/auth/google-login', { credential }),
   forgotPassword: (email) => api.post('/auth/forgot-password', { email }),
   resetPassword: (email, code, newPassword) => api.post('/auth/reset-password', { email, code, newPassword }),
+  getMyReviews: () => api.get('/auth/my-reviews'),
 };
 
 export const products = {
