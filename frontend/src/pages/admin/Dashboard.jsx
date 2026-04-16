@@ -7,6 +7,8 @@ import { stats } from '../../api';
 import AdminProducts from './Products';
 import AdminCategories from './Categories';
 import AdminOrders from './Orders';
+import AdminUsers from './Users';
+import AdminReviews from './Reviews';
 
 import { 
   ShoppingBag, 
@@ -19,7 +21,8 @@ import {
   Box,
   Layers,
   ClipboardList,
-  ArrowLeft
+  ArrowLeft,
+  MessageSquare
 } from 'lucide-react';
 
 const AdminDashboard = () => {
@@ -53,6 +56,12 @@ const AdminDashboard = () => {
           </Link>
           <Link to="/admin/orders" className={isActive('/admin/orders') ? 'sidebar-item active' : 'sidebar-item'}>
             <ClipboardList size={20} /> Buyurtmalar
+          </Link>
+          <Link to="/admin/users" className={isActive('/admin/users') ? 'sidebar-item active' : 'sidebar-item'}>
+            <Users size={20} /> Foydalanuvchilar
+          </Link>
+          <Link to="/admin/reviews" className={isActive('/admin/reviews') ? 'sidebar-item active' : 'sidebar-item'}>
+            <MessageSquare size={20} /> Sharhlar
           </Link>
           <Link to="/" className="sidebar-item" style={{ marginTop: '40px', color: '#9CA3AF' }}>
             <ArrowLeft size={20} /> Saytga qaytish
@@ -174,7 +183,45 @@ const AdminDashboard = () => {
                                  </div>
                               </div>
                             ))}
-                         </div>
+                          </div>
+                        </div>
+                      </div>
+                    <div style={{ marginTop: '40px', background: 'white', padding: '40px', borderRadius: '32px', border: '1px solid #f1f1f1', boxShadow: '0 4px 20px rgba(0,0,0,0.03)' }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '32px' }}>
+                        <h3 style={{ margin: 0 }}>Oxirgi Buyurtmalar</h3>
+                        <Link to="/admin/orders" style={{ color: 'var(--primary)', fontSize: '14px', fontWeight: 600 }}>Barchasini ko'rish</Link>
+                      </div>
+                      <div className="table-responsive">
+                        <table className="table" style={{ borderCollapse: 'separate', borderSpacing: '0 8px' }}>
+                          <thead>
+                            <tr style={{ background: 'transparent' }}>
+                              <th style={{ color: '#9CA3AF', fontSize: '13px', padding: '12px' }}>ID</th>
+                              <th style={{ color: '#9CA3AF', fontSize: '13px', padding: '12px' }}>Mijoz</th>
+                              <th style={{ color: '#9CA3AF', fontSize: '13px', padding: '12px' }}>Sana</th>
+                              <th style={{ color: '#9CA3AF', fontSize: '13px', padding: '12px' }}>Summa</th>
+                              <th style={{ color: '#9CA3AF', fontSize: '13px', padding: '12px' }}>Holat</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {statsData.recentOrders?.map(order => (
+                              <tr key={order.id} style={{ background: '#F9FAFB' }}>
+                                <td style={{ padding: '16px', borderRadius: '16px 0 0 16px' }}>#{order.id}</td>
+                                <td style={{ padding: '16px', fontWeight: 600 }}>{order.customer_name}</td>
+                                <td style={{ padding: '16px', color: '#6B7280' }}>{new Date(order.created_at).toLocaleDateString()}</td>
+                                <td style={{ padding: '16px', fontWeight: 700 }}>{order.total_amount?.toLocaleString()} so'm</td>
+                                <td style={{ padding: '16px', borderRadius: '0 16px 16px 0' }}>
+                                  <span style={{ 
+                                    padding: '4px 12px', borderRadius: '20px', fontSize: '11px', fontWeight: 700, textTransform: 'uppercase',
+                                    background: order.status === 'delivered' ? '#D1FAE5' : (order.status === 'pending' ? '#FEF3C7' : '#E5E7EB'),
+                                    color: order.status === 'delivered' ? '#059669' : (order.status === 'pending' ? '#D97706' : '#6B7280')
+                                  }}>
+                                    {order.status}
+                                  </span>
+                                </td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
                       </div>
                     </div>
                   </>
@@ -184,6 +231,8 @@ const AdminDashboard = () => {
             <Route path="/products" element={<AdminProducts />} />
             <Route path="/categories" element={<AdminCategories />} />
             <Route path="/orders" element={<AdminOrders />} />
+            <Route path="/users" element={<AdminUsers />} />
+            <Route path="/reviews" element={<AdminReviews />} />
           </Routes>
         </div>
       </div>

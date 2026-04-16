@@ -4,20 +4,26 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { orders } from '../api';
 import { useApp } from '../context/AppContext';
 
-import { Banknote, CreditCard, Lock } from 'lucide-react';
+import { Banknote, CreditCard, Lock, MapPin } from 'lucide-react';
 
 const Checkout = () => {
   const { cart, cartTotal, clearCart, user } = useApp();
   const [form, setForm] = useState({ 
-    customer_name: user?.username || '', 
-    customer_phone: '', 
+    customer_name: user?.full_name || user?.username || '', 
+    customer_phone: user?.phone || '', 
     customer_address: '' 
   });
   const [paymentMethod, setPaymentMethod] = useState('cash'); // 'cash' or 'card'
   const [cardInfo, setCardInfo] = useState({ number: '', expiry: '', cvv: '' });
+  const [selectedCardId, setSelectedCardId] = useState(null);
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState('');
   const navigate = useNavigate();
+
+  const handleSelectCard = (card) => {
+    setSelectedCardId(card.id);
+    setCardInfo({ number: card.number, expiry: card.expiry, cvv: '' });
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -83,11 +89,61 @@ const Checkout = () => {
           transition={{ delay: 0.1 }}
           style={{ display: 'grid', gap: '32px' }}
         >
+          {/* Order Summary */}
+          <div style={{ background: 'white', padding: '32px', borderRadius: '24px', boxShadow: '0 4px 20px rgba(0,0,0,0.05)', border: '1px solid #f1f1f1' }}>
+            <h3 style={{ marginBottom: '24px' }}>Buyurtma Tafsilotlari</h3>
+            <div style={{ display: 'grid', gap: '16px' }}>
+              {cart.map(item => (
+                <div key={`${item.id}-${item.selectedColor}-${item.selectedSize}`} style={{ display: 'flex', gap: '16px', alignItems: 'center' }}>
+                  <img src={item.image?.startsWith('/') ? `http://localhost:5001${item.image}` : (item.image || 'https://via.placeholder.com/64')} 
+                    alt={item.name} style={{ width: '64px', height: '64px', borderRadius: '12px', objectFit: 'cover', border: '1px solid #f1f1f1' }} />
+                  <div style={{ flex: 1 }}>
+                    <div style={{ fontWeight: 700, fontSize: '15px' }}>{item.name}</div>
+                    <div style={{ fontSize: '13px', color: 'var(--text-muted)' }}>
+                      {item.quantity} x {item.price?.toLocaleString()} so'm 
+                      {(item.selectedColor || item.selectedSize) && ` (${item.selectedColor || ''}${item.selectedColor && item.selectedSize ? ', ' : ''}${item.selectedSize || ''})`}
+                    </div>
+                  </div>
+                  <div style={{ fontWeight: 800, color: 'var(--text-main)' }}>
+                    {(item.price * item.quantity).toLocaleString()} so'm
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
           {/* Customer Info */}
           <div style={{ background: 'white', padding: '32px', borderRadius: '24px', boxShadow: '0 4px 20px rgba(0,0,0,0.05)', border: '1px solid #f1f1f1' }}>
             <h3 style={{ marginBottom: '24px', display: 'flex', alignItems: 'center', gap: '10px' }}>
               Ma'lumotlar
             </h3>
+            {/* Saved Addresses */}
+            {user?.address_list?.length > 0 && (
+              <div style={{ marginBottom: '24px' }}>
+                <label style={{ display: 'block', fontWeight: 600, fontSize: '14px', marginBottom: '12px', color: 'var(--text-muted)' }}>Mening manzillarim</label>
+                <div style={{ display: 'flex', gap: '12px', overflowX: 'auto', paddingBottom: '8px' }}>
+                  {user.address_list.map(addr => (
+                    <div 
+                      key={addr.id}
+                      onClick={() => setForm(f => ({ ...f, customer_address: addr.details }))}
+                      style={{ 
+                        flexShrink: 0, width: '180px', padding: '16px', borderRadius: '16px', 
+                        border: `2px solid ${form.customer_address === addr.details ? 'var(--primary)' : '#f1f1f1'}`,
+                        background: form.customer_address === addr.details ? 'rgba(37, 99, 235, 0.05)' : 'white',
+                        cursor: 'pointer', transition: '0.2s'
+                      }}
+                    >
+                      <div style={{ fontWeight: 700, fontSize: '14px', marginBottom: '4px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                        <MapPin size={14} color="var(--primary)" /> {addr.title}
+                      </div>
+                      <div style={{ fontSize: '12px', color: 'var(--text-muted)', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
+                        {addr.details}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
             <div className="form-group">
               <label>Ism</label>
               <input 
@@ -158,6 +214,33 @@ const Checkout = () => {
                   style={{ overflow: 'hidden' }}
                 >
                   <div style={{ background: '#f9f9fb', padding: '24px', borderRadius: '16px', border: '1px solid #eee' }}>
+                    
+                    {/* Saved Cards Selection */}
+                    {user?.saved_cards?.length > 0 && (
+                      <div style={{ marginBottom: '24px' }}>
+                        <label style={{ display: 'block', fontWeight: 600, fontSize: '13px', marginBottom: '12px', color: 'var(--text-muted)' }}>Saqlangan kartalar</label>
+                        <div style={{ display: 'flex', gap: '12px', overflowX: 'auto', paddingBottom: '8px' }}>
+                          {user.saved_cards.map(card => (
+                            <div 
+                              key={card.id}
+                              onClick={() => handleSelectCard(card)}
+                              style={{ 
+                                flexShrink: 0, width: '140px', padding: '12px', borderRadius: '12px', 
+                                border: `2px solid ${selectedCardId === card.id ? 'var(--primary)' : '#f1f1f1'}`,
+                                background: selectedCardId === card.id ? 'rgba(37, 99, 235, 0.05)' : 'white',
+                                cursor: 'pointer', transition: '0.2s', textAlign: 'center'
+                              }}
+                            >
+                              <CreditCard size={20} color={selectedCardId === card.id ? 'var(--primary)' : 'var(--text-muted)'} style={{ marginBottom: '8px' }} />
+                              <div style={{ fontSize: '12px', fontWeight: 700 }}>•••• {card.number.slice(-4)}</div>
+                              <div style={{ fontSize: '10px', color: 'var(--text-muted)' }}>{card.expiry}</div>
+                            </div>
+                          ))}
+                        </div>
+                        <div style={{ height: '1px', background: '#eee', margin: '16px 0' }} />
+                      </div>
+                    )}
+
                     <div style={{ marginBottom: '16px' }}>
                       <label style={{ fontSize: '13px', fontWeight: 600, display: 'block', marginBottom: '8px' }}>Karta raqami</label>
                       <input 

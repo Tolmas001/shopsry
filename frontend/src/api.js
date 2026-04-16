@@ -65,10 +65,17 @@ export const orders = {
   getOne: (id) => api.get(`/orders/${id}`),
   create: (data) => api.post('/orders', data),
   updateStatus: (id, status) => api.put(`/orders/${id}/status`, { status }),
+  cancel: (id) => api.put(`/orders/${id}/cancel`),
 };
 
 export const stats = {
   get: () => api.get('/stats'),
+};
+
+export const admin = {
+  getUsers: () => api.get('/users'),
+  deleteUser: (id) => api.delete(`/users/${id}`),
+  deleteReview: (productId, index) => api.delete(`/products/${productId}/comments/${index}`),
 };
 
 export const demo = {

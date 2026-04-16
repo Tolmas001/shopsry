@@ -22,6 +22,24 @@ const Home = () => {
   const navigate = useNavigate();
   const [productsList, setProductsList] = useState([]);
   const [searchQuery, setSearchQuery] = useState(searchParams.get('name') || '');
+  const [timeLeft, setTimeLeft] = useState({ hours: 12, mins: 45, secs: 30 });
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      const now = new Date();
+      const midnight = new Date();
+      midnight.setHours(24, 0, 0, 0);
+      
+      const diff = midnight - now;
+      const hours = Math.floor(diff / (1000 * 60 * 60));
+      const mins = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+      const secs = Math.floor((diff % (1000 * 60)) / 1000);
+      
+      setTimeLeft({ hours, mins, secs });
+    }, 1000);
+
+    return () => clearInterval(timer);
+  }, []);
 
   const categoryTiles = [
     { name: t('cat_electronics'), icon: <Smartphone size={32} />, color: '#EFF6FF' },
@@ -199,11 +217,11 @@ const Home = () => {
             <p className="offer-description">{t('offer_desc')}</p>
             
             <div className="offer-timer-modern">
-              <div className="timer-unit"><span>12</span><p>{t('hours')}</p></div>
+              <div className="timer-unit"><span>{String(timeLeft.hours).padStart(2, '0')}</span><p>{t('hours')}</p></div>
               <div className="timer-separator">:</div>
-              <div className="timer-unit"><span>45</span><p>{t('mins')}</p></div>
+              <div className="timer-unit"><span>{String(timeLeft.mins).padStart(2, '0')}</span><p>{t('mins')}</p></div>
               <div className="timer-separator">:</div>
-              <div className="timer-unit"><span>30</span><p>{t('secs')}</p></div>
+              <div className="timer-unit"><span>{String(timeLeft.secs).padStart(2, '0')}</span><p>{t('secs')}</p></div>
             </div>
             
             <Link to="/products" className="btn btn-secondary offer-btn-modern">

@@ -3,6 +3,9 @@ import { auth } from '../api';
 
 const AppContext = createContext();
 
+const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5001/api';
+const backendUrl = API_URL.replace('/api', '');
+
 const translations = {
   uz: {
     nav_home: 'Bosh sahifa', nav_shop: 'Do\'kon', nav_categories: 'Kategoriyalar', nav_about: 'Biz haqimizda', nav_contact: 'Bog\'lanish',
@@ -338,7 +341,8 @@ export const AppProvider = ({ children }) => {
       favorites, toggleFavorite, clearFavorites,
       language, changeLanguage, t, theme, toggleTheme,
       quickViewProduct, setQuickViewProduct,
-      notifications, setNotifications, showNotification
+      notifications, setNotifications, showNotification,
+      backendUrl
     }}>
       {children}
     </AppContext.Provider>

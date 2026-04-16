@@ -14,7 +14,7 @@ import {
 } from 'lucide-react';
 
 const ProductCard = ({ product, onLike, onComment }) => {
-  const { user, addToCart, setQuickViewProduct, showNotification, favorites, toggleFavorite, t } = useApp();
+  const { user, addToCart, setQuickViewProduct, showNotification, favorites, toggleFavorite, t, backendUrl } = useApp();
   const [selectedColor, setSelectedColor] = useState(product.colors?.[0] || null);
   const [selectedSize, setSelectedSize] = useState(product.sizes?.[0] || null);
   const [showCommentModal, setShowCommentModal] = useState(false);
@@ -92,7 +92,7 @@ const ProductCard = ({ product, onLike, onComment }) => {
         <div className="product-image-wrap">
           <Link to={`/product/${product.id}`}>
             <img 
-              src={product.image?.startsWith('/') ? `http://localhost:5001${product.image}` : (product.image || 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=400')} 
+              src={product.image?.startsWith('/') ? `${backendUrl}${product.image}` : (product.image || 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=400')} 
               alt={product.name} 
               className="product-img" 
             />
@@ -221,7 +221,7 @@ const ProductCard = ({ product, onLike, onComment }) => {
                       {comment.image && (
                         <div style={{ marginTop: '8px', width: '100px', height: '100px', borderRadius: '8px', overflow: 'hidden', border: '1px solid #E5E7EB' }}>
                           <img 
-                            src={comment.image.startsWith('/') ? `http://localhost:5001${comment.image}` : comment.image} 
+                            src={comment.image.startsWith('/') ? `${backendUrl}${comment.image}` : comment.image} 
                             alt="Comment" 
                             style={{ width: '100%', height: '100%', objectFit: 'cover' }} 
                           />

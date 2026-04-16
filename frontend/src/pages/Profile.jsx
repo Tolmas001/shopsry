@@ -10,7 +10,7 @@ import {
 } from 'lucide-react';
 
 const Profile = () => {
-  const { user, updateProfile, language, changeLanguage, t, theme, toggleTheme, logout } = useApp();
+  const { user, updateProfile, language, changeLanguage, t, theme, toggleTheme, logout, backendUrl } = useApp();
   const [activeTab, setActiveTab] = useState('account');
   const [orders, setOrders] = useState([]);
   const [reviews, setReviews] = useState([]);
@@ -83,6 +83,17 @@ const Profile = () => {
       setReviews([]);
     } finally {
       setLoadingReviews(false);
+    }
+  };
+
+  const handleCancelOrder = async (orderId) => {
+    if (!window.confirm(t('confirm_cancel_order') || 'Buyurtmani bekor qilmoqchimisiz?')) return;
+    try {
+      await ordersApi.cancel(orderId);
+      await fetchOrders();
+    } catch (err) {
+      console.error('Cancel order error:', err);
+      alert(err.response?.data?.error || 'Xatolik yuz berdi');
     }
   };
 
@@ -310,7 +321,7 @@ const Profile = () => {
                         <div style={{ width: '100px', height: '100px', borderRadius: '30px', overflow: 'hidden', border: '3px solid var(--border-color)', background: '#f3f4f6' }}>
                           <img
                             src={form.image
-                              ? (form.image.startsWith('data') || form.image.startsWith('http') ? form.image : `http://localhost:5001${form.image}`)
+                              ? (form.image.startsWith('data') || form.image.startsWith('http') ? form.image : `${backendUrl}${form.image}`)
                               : 'https://img.icons8.com/ios-filled/100/eeeeee/user-male-circle.png'}
                             alt="avatar"
                             style={{ width: '100%', height: '100%', objectFit: 'cover' }}
@@ -420,7 +431,7 @@ const Profile = () => {
                             {order.items_list?.length > 0 && (
                               <div style={{ display: 'flex', gap: '10px', marginBottom: '16px', flexWrap: 'wrap' }}>
                                 {order.items_list.slice(0, 5).map((item, i) => (
-                                  <img key={i} src={item.image?.startsWith('/') ? `http://localhost:5001${item.image}` : (item.image || 'https://via.placeholder.com/48')} alt={item.name}
+                                  <img key={i} src={item.image?.startsWith('/') ? `${backendUrl}${item.image}` : (item.image || 'https://via.placeholder.com/48')} alt={item.name}
                                     style={{ width: '48px', height: '48px', borderRadius: '10px', objectFit: 'cover', border: '1px solid var(--border-color)' }} title={item.name} />
                                 ))}
                                 {order.items_list.length > 5 && (
@@ -445,6 +456,23 @@ const Profile = () => {
                                 {Number(order.total_amount).toLocaleString()} <span style={{ fontSize: '13px' }}>UZS</span>
                               </div>
                             </div>
+                            
+                            {order.status === 'pending' && (
+                              <button 
+                                onClick={() => handleCancelOrder(order.id)}
+                                style={{ 
+                                  width: '100%', marginTop: '14px', padding: '10px', 
+                                  borderRadius: '12px', background: 'transparent', 
+                                  border: '1px solid #EF4444', color: '#EF4444', 
+                                  fontSize: '13px', fontWeight: 600, cursor: 'pointer',
+                                  transition: '0.2s'
+                                }}
+                                onMouseEnter={(e) => { e.target.style.background = 'rgba(239, 68, 68, 0.05)' }}
+                                onMouseLeave={(e) => { e.target.style.background = 'transparent' }}
+                              >
+                                {t('cancel_order') || 'Buyurtmani bekor qilish'}
+                              </button>
+                            )}
                           </div>
                         ))}
                       </div>
@@ -587,7 +615,7 @@ const Profile = () => {
                           <div key={i} style={{ display: 'flex', gap: '18px', padding: '20px', borderRadius: '18px', border: '1.5px solid var(--border-color)', background: 'var(--bg-main)' }}>
                             <img
                               src={rev.productImage
-                                ? (rev.productImage.startsWith('/') ? `http://localhost:5001${rev.productImage}` : rev.productImage)
+                                ? (rev.productImage.startsWith('/') ? `${backendUrl}${rev.productImage}` : rev.productImage)
                                 : 'https://via.placeholder.com/72'}
                               alt={rev.productName}
                               style={{ width: '72px', height: '72px', borderRadius: '14px', objectFit: 'cover', flexShrink: 0 }}
@@ -596,7 +624,7 @@ const Profile = () => {
                               <div style={{ fontWeight: 700, fontSize: '16px', marginBottom: '6px' }}>{rev.productName}</div>
                               <p style={{ fontSize: '14px', color: 'var(--text-main)', fontStyle: 'italic', margin: '0 0 10px', lineHeight: 1.5 }}>"{rev.text}"</p>
                               {rev.image && (
-                                <img src={rev.image.startsWith('/') ? `http://localhost:5001${rev.image}` : rev.image}
+                                <img src={rev.image.startsWith('/') ? `${backendUrl}${rev.image}` : rev.image}
                                   alt="review-img" style={{ width: '60px', height: '60px', borderRadius: '10px', objectFit: 'cover', marginBottom: '10px' }} />
                               )}
                               <div style={{ fontSize: '12px', color: 'var(--text-muted)' }}>

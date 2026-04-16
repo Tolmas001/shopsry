@@ -19,7 +19,7 @@ import {
 
 const ProductDetail = () => {
   const { id } = useParams();
-  const { user, addToCart, t } = useApp();
+  const { user, addToCart, t, backendUrl } = useApp();
   const [product, setProduct] = useState(null);
   const [loading, setLoading] = useState(true);
   const [quantity, setQuantity] = useState(1);
@@ -93,7 +93,7 @@ const ProductDetail = () => {
             animate={{ opacity: 1, scale: 1 }}
           >
             <img 
-              src={activeImage?.startsWith('/') ? `http://localhost:5001${activeImage}` : (activeImage || 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=800')} 
+              src={activeImage?.startsWith('/') ? `${backendUrl}${activeImage}` : (activeImage || 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=800')} 
               alt={product.name} 
               className="main-img-detail"
             />
@@ -316,7 +316,7 @@ const ProductDetail = () => {
                   {comment.image && (
                     <div style={{ width: '120px', height: '120px', borderRadius: '12px', overflow: 'hidden', border: '1px solid var(--border)' }}>
                       <img 
-                        src={comment.image.startsWith('/') ? `http://localhost:5001${comment.image}` : comment.image} 
+                        src={comment.image.startsWith('/') ? `${backendUrl}${comment.image}` : comment.image} 
                         alt="User upload" 
                         style={{ width: '100%', height: '100%', objectFit: 'cover' }} 
                       />

@@ -44,6 +44,58 @@ function saveBase64Image(base64) {
   }
 }
 
+// Admin seeding logic
+async function ensureAdminExists() {
+  const adminUser = process.env.ADMIN_USERNAME || 'admin';
+  const adminPass = process.env.ADMIN_PASSWORD || 'admin123';
+  
+  try {
+    console.log(`Checking for admin user: ${adminUser}...`);
+    const { rows } = await pool.query('SELECT * FROM users WHERE role = $1 OR LOWER(username) = LOWER($2)', ['admin', adminUser.toLowerCase()]);
+    const hashedPassword = await bcrypt.hash(adminPass, 10);
+
+    if (rows.length === 0) {
+      console.log(`Admin user "${adminUser}" not found, creating one...`);
+      await pool.query(
+        'INSERT INTO users (username, email, password, role) VALUES ($1, $2, $3, $4)',
+        [adminUser.toLowerCase(), 'admin@shopsry.com', hashedPassword, 'admin']
+      );
+      console.log('✅ Admin user created successfully with password from .env');
+    } else {
+      // Force sync password and role even if user exists
+      const existingUser = rows[0];
+      await pool.query(
+        'UPDATE users SET password = $1, role = $2, username = $3 WHERE id = $4',
+        [hashedPassword, 'admin', adminUser.toLowerCase(), existingUser.id]
+      );
+      console.log(`✅ Admin account synced: User="${adminUser.toLowerCase()}", Role="admin", Password="[UPDATED FROM .env]"`);
+    }
+    return true;
+  } catch (err) {
+    console.error('❌ Error ensuring admin exists:', err.message);
+    return false;
+  }
+}
+
+// Emergency Admin Reset Endpoint
+app.get('/api/auth/reset-admin', async (req, res) => {
+  const success = await ensureAdminExists();
+  if (success) {
+    res.send(`
+      <div style="font-family: sans-serif; padding: 40px; text-align: center;">
+        <h1 style="color: #10B981;">✅ Admin account has been reset successfully!</h1>
+        <p>You can endter with:</p>
+        <p><b>Username:</b> ${process.env.ADMIN_USERNAME || 'admin'}</p>
+        <p><b>Password:</b> ${process.env.ADMIN_PASSWORD || 'admin123'}</p>
+        <br/>
+        <a href="http://localhost:3000/admin/login" style="background: #2563EB; color: white; padding: 10px 20px; border-radius: 8px; text-decoration: none;">Go to Login Page</a>
+      </div>
+    `);
+  } else {
+    res.status(500).send('Error resetting admin account. Check server logs.');
+  }
+});
+
 const SECRET_KEY = process.env.JWT_SECRET || 'secret';
 
 function authenticateToken(req, res, next) {
@@ -248,6 +300,27 @@ app.post('/api/products/:id/comments', authenticateToken, async (req, res) => {
   }
 });
 
+// Admin: Delete comment
+app.delete('/api/products/:id/comments/:index', authenticateAdmin, async (req, res) => {
+  try {
+    const { id, index } = req.params;
+    const { rows } = await pool.query('SELECT comments FROM products WHERE id = $1', [id]);
+    if (rows.length === 0) return res.status(404).json({ error: 'Product not found' });
+    
+    let comments = rows[0].comments || [];
+    const idx = parseInt(index);
+    if (idx >= 0 && idx < comments.length) {
+      comments.splice(idx, 1);
+      await pool.query('UPDATE products SET comments = $1 WHERE id = $2', [JSON.stringify(comments), id]);
+      res.json({ success: true, comments });
+    } else {
+      res.status(400).json({ error: 'Invalid comment index' });
+    }
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 // Orders
 app.get('/api/orders', authenticateToken, async (req, res) => {
   try {
@@ -353,6 +426,38 @@ app.put('/api/orders/:id/status', authenticateAdmin, async (req, res) => {
   }
 });
 
+app.put('/api/orders/:id/cancel', authenticateToken, async (req, res) => {
+  const orderId = req.params.id;
+  const userId = req.user.id;
+  
+  try {
+    // Verify order ownership and status
+    const { rows } = await pool.query(
+      'SELECT id, status FROM orders WHERE id = $1 AND user_id = $2',
+      [orderId, userId]
+    );
+    
+    if (rows.length === 0) {
+      return res.status(404).json({ error: 'Order not found or access denied' });
+    }
+    
+    if (rows[0].status !== 'pending') {
+      return res.status(400).json({ error: `Cannot cancel order with status: ${rows[0].status}` });
+    }
+    
+    // Update status to cancelled
+    await pool.query(
+      'UPDATE orders SET status = \'cancelled\' WHERE id = $1',
+      [orderId]
+    );
+    
+    res.json({ success: true, message: 'Order cancelled successfully' });
+  } catch (err) {
+    console.error('Order cancel error:', err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
 // Auth
 app.post('/api/auth/register', async (req, res) => {
   const { username, email, password } = req.body;
@@ -370,16 +475,37 @@ app.post('/api/auth/register', async (req, res) => {
 });
 
 app.post('/api/auth/login', async (req, res) => {
-  const { username, password } = req.body;
+  const username = req.body.username?.trim();
+  const password = req.body.password?.trim();
+  
+  if (!username || !password) {
+    return res.status(400).json({ error: 'Username and password are required' });
+  }
+
+  console.log(`\n[LOGIN ATTEMPT] Username: "${username}"`);
+  
   try {
-    const { rows } = await pool.query('SELECT * FROM users WHERE username = $1', [username]);
+    const { rows } = await pool.query('SELECT * FROM users WHERE LOWER(username) = LOWER($1)', [username]);
     const user = rows[0];
-    if (!user || !(await bcrypt.compare(password, user.password))) {
-      return res.status(400).json({ error: 'Invalid credentials' });
+    
+    if (!user) {
+      console.log(`[LOGIN FAILED] User "${username}" not found in database.`);
+      return res.status(400).json({ error: 'Foydalanuvchi topilmadi' });
     }
+    
+    console.log(`[LOGIN DEBUG] User found. ID: ${user.id}, Role: ${user.role}. Checking password...`);
+    
+    const isPasswordValid = await bcrypt.compare(password, user.password);
+    if (!isPasswordValid) {
+      console.log(`[LOGIN FAILED] Password mismatch for user "${username}".`);
+      return res.status(400).json({ error: 'Parol noto\'g\'ri' });
+    }
+    
+    console.log(`[LOGIN SUCCESS] User "${username}" authenticated successfully.`);
     const token = jwt.sign({ id: user.id, username: user.username, role: user.role }, SECRET_KEY, { expiresIn: '24h' });
     res.json({ token, user: { id: user.id, username: user.username, role: user.role } });
   } catch (err) {
+    console.error('[LOGIN ERROR]', err);
     res.status(500).json({ error: err.message });
   }
 });
@@ -495,6 +621,31 @@ app.get('/api/auth/me', authenticateToken, async (req, res) => {
   }
 });
 
+// Admin: Get all users
+app.get('/api/users', authenticateAdmin, async (req, res) => {
+  try {
+    const { rows } = await pool.query('SELECT id, username, email, full_name, role, image, created_at FROM users ORDER BY created_at DESC');
+    res.json(rows);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Admin: Delete user
+app.delete('/api/users/:id', authenticateAdmin, async (req, res) => {
+  try {
+    const { id } = req.params;
+    // Don't allow admin to delete themselves
+    if (parseInt(id) === req.user.id) {
+      return res.status(400).json({ error: 'Siz o\'zingizni o\'chira olmaysiz' });
+    }
+    await pool.query('DELETE FROM users WHERE id = $1', [id]);
+    res.json({ success: true, message: 'Foydalanuvchi o\'chirildi' });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 app.put('/api/auth/profile', authenticateToken, async (req, res) => {
   const { username, email, password, image, full_name, phone, notifications_enabled, privacy_private, address_list, saved_cards } = req.body;
   const userId = req.user.id;
@@ -582,6 +733,14 @@ app.get('/api/stats', authenticateAdmin, async (req, res) => {
       FROM orders
       GROUP BY status
     `);
+
+    // Recent orders
+    const recentOrdersRes = await pool.query(`
+      SELECT o.id, o.customer_name, o.total_amount, o.status, o.created_at
+      FROM orders o
+      ORDER BY o.created_at DESC
+      LIMIT 5
+    `);
     
     res.json({
       totalProducts: parseInt(productsRes.rows[0].count),
@@ -589,7 +748,8 @@ app.get('/api/stats', authenticateAdmin, async (req, res) => {
       totalRevenue: parseFloat(revenueRes.rows[0].total) || 0,
       pendingOrders: parseInt(pendingRes.rows[0].count),
       revenueTrend: trendRes.rows.map(r => ({ label: r.label, val: parseFloat(r.val) })),
-      statusDistribution: statusRes.rows
+      statusDistribution: statusRes.rows,
+      recentOrders: recentOrdersRes.rows
     });
   } catch (err) {
      res.status(500).json({ error: err.message });
@@ -598,55 +758,73 @@ app.get('/api/stats', authenticateAdmin, async (req, res) => {
 
 // Demo data insertion API
 app.post('/api/demo/seed', async (req, res) => {
+  const client = await pool.connect();
   try {
-    const client = await pool.connect();
-    
+    await client.query('BEGIN');
+
     // Create Admin User from .env
     const adminUser = process.env.ADMIN_USERNAME || 'admin';
     const adminPass = process.env.ADMIN_PASSWORD || 'admin123';
     const hashedAdminPass = await bcrypt.hash(adminPass, 10);
     
-    await client.query(
-      'INSERT INTO users (username, email, password, role) VALUES ($1, $2, $3, $4) ON CONFLICT (username) DO NOTHING',
-      [adminUser, 'admin@shop.com', hashedAdminPass, 'admin']
-    );
+    // Check if admin exists before inserting
+    const { rows: existingAdmin } = await client.query('SELECT id FROM users WHERE LOWER(username) = LOWER($1)', [adminUser]);
+    if (existingAdmin.length === 0) {
+      await client.query(
+        'INSERT INTO users (username, email, password, role) VALUES ($1, $2, $3, $4)',
+        [adminUser, 'admin@shop.com', hashedAdminPass, 'admin']
+      );
+    }
 
-    // Create categories
+    // Create categories (check existence first since no UNIQUE constraint on name)
     const categories = [
       ['Electronics', 'Gadgets and devices'],
       ['Clothing', 'Men and Women clothing'],
       ['Home', 'Everything for your home']
     ];
-    for(const c of categories) {
-      await client.query('INSERT INTO categories (name, description) VALUES ($1, $2) ON CONFLICT (name) DO NOTHING', [c[0], c[1]]);
+    for (const c of categories) {
+      const { rows: existing } = await client.query('SELECT id FROM categories WHERE name = $1', [c[0]]);
+      if (existing.length === 0) {
+        await client.query('INSERT INTO categories (name, description) VALUES ($1, $2)', [c[0], c[1]]);
+      }
     }
     
-    // Create some products
+    // Create some products (check by name to avoid duplicates)
     const sampleProducts = [
       ['Smartphone X', 'TechBrand', 'Electronics', 'Latest smartphone.', 699, 'https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?w=800'],
       ['Cotton T-Shirt', 'FashionCo', 'Clothing', 'Comfy shirt.', 19, 'https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w=800'],
       ['Smart Watch', 'FitLife', 'Electronics', 'Track your health.', 199, 'https://images.unsplash.com/photo-1544117518-2b476035a937?w=800']
     ];
-    for(const p of sampleProducts) {
-      await client.query(`INSERT INTO products (name, brand, category, description, price, image, colors, sizes, stock_count) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)`, 
-        [p[0], p[1], p[2], p[3], p[4], p[5], JSON.stringify(['Black', 'White']), JSON.stringify(['M', 'L']), 50]);
+    for (const p of sampleProducts) {
+      const { rows: existingProduct } = await client.query('SELECT id FROM products WHERE name = $1 AND brand = $2', [p[0], p[1]]);
+      if (existingProduct.length === 0) {
+        await client.query(
+          'INSERT INTO products (name, brand, category, description, price, image, colors, sizes, stock_count) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)', 
+          [p[0], p[1], p[2], p[3], p[4], p[5], JSON.stringify(['Black', 'White']), JSON.stringify(['M', 'L']), 50]
+        );
+      }
     }
 
-    client.release();
-    res.json({ success: true, message: 'Seeded successfully' });
+    await client.query('COMMIT');
+    res.json({ success: true, message: 'Demo ma\'lumotlar muvaffaqiyatli qo\'shildi!' });
   } catch (err) {
-     res.status(500).json({ error: err.message });
+    await client.query('ROLLBACK');
+    console.error('❌ Demo seed error:', err.message);
+    res.status(500).json({ error: err.message });
+  } finally {
+    client.release();
   }
 });
 
 const PORT = process.env.PORT || 5001;
 
-// Database connection health check on startup
-pool.query('SELECT NOW()', (err, res) => {
+// Database connection health check and admin seeding on startup
+pool.query('SELECT NOW()', async (err, res) => {
   if (err) {
     console.error('CRITICAL: Database connection failed!', err.stack);
   } else {
     console.log('PostgreSQL Connected Successfully at:', res.rows[0].now);
+    await ensureAdminExists();
   }
 });
 
